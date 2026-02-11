@@ -1,1 +1,1 @@
-# QuanLyBanHang_TT
+# Dự án được training ở RIKI 
