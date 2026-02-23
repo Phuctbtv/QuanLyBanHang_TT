@@ -43,13 +43,21 @@
     <hr>
     <div class="dropdown">
         <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
-            <strong>Admin Account</strong>
+            <strong>
+            <?php
+            if (!empty($_SESSION['userName'])) {
+                echo $_SESSION['userName'];
+            } else if ($_COOKIE['remember_user']) {
+                echo $_COOKIE['remember_user'];
+            }
+            ?> 
+            </strong>
         </a>
         <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
             <li><a class="dropdown-item" href="#">Cài đặt</a></li>
             <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Đăng xuất</a></li>
+            <li><a class="dropdown-item" href="index.php?controller=Auth&action=logout">Đăng xuất</a></li>
         </ul>
     </div>
 </div>

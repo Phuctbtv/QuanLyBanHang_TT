@@ -26,21 +26,19 @@ class Users {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getAllregister() {
+        $query = "SELECT * FROM " . $this->table_name . " 
+                  ORDER BY username";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // READ - Lấy user theo ID
     public function getById($id) {
         $query = "SELECT * FROM " . $this->table_name . " WHERE id = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $id);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    // READ - Lấy user theo username (dùng cho login)
-    public function getByUsername($username) {
-        $query = "SELECT * FROM " . $this->table_name . " 
-                  WHERE username = ? LIMIT 1";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $username);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -115,34 +113,34 @@ public function updatePassword(){
     }
 }
 
-    // DELETE - Xóa user (cẩn thận vì có khóa ngoại)
-    public function delete($id) {
-        // Kiểm tra xem user có đang được sử dụng không
-        $check_query = "SELECT COUNT(*) as count FROM customers WHERE users_id = ?";
-        $check_stmt = $this->conn->prepare($check_query);
-        $check_stmt->bindParam(1, $id);
-        $check_stmt->execute();
-        $result = $check_stmt->fetch(PDO::FETCH_ASSOC);
+    // // DELETE - Xóa user (cẩn thận vì có khóa ngoại)
+    // public function delete($id) {
+    //     // Kiểm tra xem user có đang được sử dụng không
+    //     $check_query = "SELECT COUNT(*) as count FROM customers WHERE users_id = ?";
+    //     $check_stmt = $this->conn->prepare($check_query);
+    //     $check_stmt->bindParam(1, $id);
+    //     $check_stmt->execute();
+    //     $result = $check_stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($result['count'] > 0) {
-            // Không cho xóa nếu user đang được sử dụng
-            return false;
-        }
+    //     if ($result['count'] > 0) {
+    //         // Không cho xóa nếu user đang được sử dụng
+    //         return false;
+    //     }
         
-        $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $id);
+    //     $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
+    //     $stmt = $this->conn->prepare($query);
+    //     $stmt->bindParam(1, $id);
         
-        if($stmt->execute()) {
-            return true;
-        }
-        return false;
-    }
+    //     if($stmt->execute()) {
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
-    // VERIFY - Xác thực login
-    public function verifyPassword($password) {
-        return password_verify($password, $this->password);
-    }
+    // // VERIFY - Xác thực login
+    // public function verifyPassword($password) {
+    //     return password_verify($password, $this->password);
+    // }
 
     
 
@@ -185,6 +183,14 @@ public function updatePassword(){
         
         $stmt->execute();
         
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function find($username, $pass) {
+        $query = "SELECT * FROM users WHERE username= :username AND password= :pass";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam("username", $username);
+        $stmt->bindParam("pass", $pass);
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
