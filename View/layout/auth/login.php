@@ -39,7 +39,7 @@
         <div class="input-group">
             <label>Tên người dùng</label>
             <i class="fas fa-envelope"></i>
-            <input type="text" name="username" placeholder="phuc" value="<?= $_POST['username'] ?? '' ?>">
+            <input type="text" name="username" placeholder="Nhập tên đăng nhập" value="<?= $_POST['username'] ?? '' ?>">
             
             <?php if (!empty($errors['username'])): ?>
                 <span style="color: red; font-size: 11px;"><?php echo $errors['username']; ?></span>

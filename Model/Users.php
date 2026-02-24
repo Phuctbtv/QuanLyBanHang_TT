@@ -185,8 +185,9 @@ public function updatePassword(){
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    //hàm kiểm tra đăng nhập với các tài khoản còn hoạt động
     public function find($username, $pass) {
-        $query = "SELECT * FROM users WHERE username= :username AND password= :pass";
+        $query = "SELECT * FROM users WHERE username= :username AND password= :pass AND status = 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam("username", $username);
         $stmt->bindParam("pass", $pass);
