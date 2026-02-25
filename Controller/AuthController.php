@@ -52,8 +52,6 @@ class AuthController {
         	$users = $user->password = $_POST['password'];
         	$users = $user->status = 1;
         	$users = $user->create();
-        	// header('Location: index.php?controller=customer&action=index');
-            // exit();
             header('Location: index.php?controller=Auth&action=showLogin');
 	    	exit();
 		}
@@ -99,7 +97,6 @@ class AuthController {
 		require_once 'View/layout/auth/login.php'; 
 	}
 	public function logout() {
-	    // $_SESSION = array();
 	    session_destroy();
 	    if (isset($_COOKIE['remember_user'])) {
 	        setcookie("remember_user", "", time() + (86400 * 30), "/");

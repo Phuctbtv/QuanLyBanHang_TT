@@ -165,5 +165,26 @@ class Orders{
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // hàm thống kê doanh thu bán được
+    public function statistical($month) {
+	    $query = "SELECT MONTH(orders.order_date) as thang,
+	                     COUNT(order_details.products_id) as tongSP,
+	                     COUNT(DISTINCT orders.id) as tongDH,
+	                     COUNT(DISTINCT orders.customers_id) as tongKH,
+	                     SUM(orders.total_money) as tongDT
+	              FROM orders 
+	              JOIN order_details ON orders.id = order_details.orders_id
+	              WHERE orders.status = 1 
+	                AND MONTH(orders.order_date) = :month 
+	                AND YEAR(orders.order_date) = YEAR(CURDATE())
+	              GROUP BY MONTH(orders.order_date)
+	              ORDER BY MONTH(orders.order_date) ASC";
+
+	    $stmt = $this->conn->prepare($query);
+	    $stmt->bindParam(":month", $month);
+	    $stmt->execute();
+	    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	}
 }
 ?>

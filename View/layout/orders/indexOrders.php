@@ -27,6 +27,10 @@ require_once __DIR__ . '/../customer/header.php';
                        class="btn btn-outline-success btn-sm d-flex align-items-center">
                         <i class="bi bi-file-earmark-arrow-up me-1"></i> Thêm Excel
                     </a>
+                    <a href="index.php?controller=orders&action=showStatistical" 
+                       class="btn btn-outline-success btn-sm d-flex align-items-center">
+                        <i class="bi bi-file-earmark-arrow-up me-1"></i> Thống kê
+                    </a>
                 </div>
             </div>
         </div>

@@ -496,7 +496,7 @@ public function update() {
 
                     $customerNameFromExcel = $row['F'];
                     $customers_id = $customerMap[$customerNameFromExcel];
-
+                    
    
                     $orders->code = $row['B'];
                     $orders->order_date = $order_date;
@@ -528,7 +528,7 @@ public function update() {
             // session_start();
             // $_SESSION['data_export'] = $customers;
         }else{
-           $keyword="vui long nhap tu khoa tim kiem";
+           $keyword="";
            $order = $orders->getAll();
             // echo $keyword;
         }
@@ -538,7 +538,7 @@ public function update() {
     }
 
     public function exportSearch(){
-        if (!empty($_GET['keyword'])) {
+        if (isset($_GET['keyword'])) {
             $keyword = $_GET['keyword'];
         }
         $database = new Database();
@@ -603,6 +603,77 @@ public function update() {
         $writer->save('php://output');
         exit;
     }   
+
+    // hàm hiển thị bảng thống kê
+    public function showStatistical() {
+        $database = new Database();
+        $db = $database->connect();
+        
+        $orders = new Orders($db);
+        if (!empty($_POST['month'])) {
+            $currentSelectedMonth = $_POST['month'];
+        } else {
+            $currentSelectedMonth = date('m');
+        }
+        $order = $orders->statistical($currentSelectedMonth);
+        require_once 'View/layout/orders/showStatistical.php';
+    }
+
+    // hàm xuất excel theo bảng thống kê
+    public function exportStatistical() {
+        if (!empty($_GET['month'])) {
+            $currentSelectedMonth = $_GET['month'];
+        }
+        $database = new Database();
+        $db = $database->connect();
+
+        $orders = new Orders($db);
+        $order = $orders->statistical($currentSelectedMonth);
+        // khởi tạo 1 file excel
+        $spreadsheet = new Spreadsheet();
+        // lấy trang tính để bắt đầu ghi file
+        $sheet = $spreadsheet->getActiveSheet();
+        // tạo tiêu đề trang
+        $sheet->setTitle('Thống kê doanh thu theo tháng');
+        // tạo tiêu đề cột
+        $sheet->setCellValue('A1', 'Tháng');
+        $sheet->setCellValue('B1', 'Tổng sản phẩm bán được');
+        $sheet->setCellValue('C1', 'Tổng khách hàng mua');
+        $sheet->setCellValue('D1', 'Tổng đơn hàng bán được');
+        $sheet->setCellValue('E1', 'Tổng doanh thu');
+        //đổ dữ liệu vào bắt đầu từ hàng 2
+         $row = 2;
+         foreach ($order as $item) {
+             $sheet->setCellValue('A' . $row, $item['thang']);
+             $sheet->setCellValue('B' . $row, $item['tongSP']);
+             $sheet->setCellValue('C' . $row, $item['tongKH']);
+             $sheet->setCellValue('D' .$row, $item['tongDH']);
+             $sheet->setCellValue('E' .$row, $item['tongDT']);
+             $row++;
+         }
+        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+        $end = 'E' . ($row - 1);
+        $spreadsheet->getActiveSheet()->getStyle('A1:' . $end)
+        ->getBorders()
+        ->getAllBorders()
+        ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A1:E' . $row)
+        ->getAlignment()
+        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER) // Căn giữa ngang
+        ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);   // Căn giữa dọc
+        foreach (range('A', 'E') as $columnID) {
+            $spreadsheet->getActiveSheet()
+                ->getColumnDimension($columnID)
+                ->setAutoSize(true);
+        }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="ThongKeDoanhThu.xlsx"');
+        //xóa mọi thứ trong bộ đệm file
+        ob_end_clean();
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
 
 	public function store(){
 		$database = new Database();
