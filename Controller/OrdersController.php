@@ -42,10 +42,10 @@ class OrdersController{
 
 		//lay danh sach users de hien thi dropdown
 		$customers = new Customer($db);
-		$customer = $customers->getCustomers();
+		$customer = $customers->readAll();
 
 		$products = new Products($db);
-		$product = $products->getProducts();
+		$product = $products->readAll();
 
 		$users = new Users($db);
 		$user = $users->getAll();
@@ -156,7 +156,7 @@ public function edit() {
   
     // Lấy danh sách khách hàng, người dùng, sản phẩm để hiển thị dropdown
     $customerModel = new Customer($db);
-    $customers = $customerModel->getCustomers();
+    $customers = $customerModel->readAll();
     
     $userModel = new Users($db);
     $users = $userModel->getAll();
@@ -166,7 +166,7 @@ public function edit() {
 
     
     $productModel = new Products($db);
-    $products = $productModel->getProducts();
+    $products = $productModel->readAll();
     
     
     
@@ -228,8 +228,8 @@ public function update() {
         
             
             foreach ($_POST['product_id'] as $product_id) {
-                $orderDetail = new OrderDetail($db);
-                $orderDetail->orders_id = date("Y-m-d H:i:s",time());
+                $orderDetail = new Ordersdetail($db);
+                $orderDetail->orders_id = $id;
                 $orderDetail->products_id = $product_id;
                 $orderDetail->quantity = 1; // Cần lấy từ form
                 $orderDetail->price = 0; // Cần lấy từ database
@@ -699,10 +699,10 @@ public function update() {
 			// lấy lại danh sách khách hàng , người dùng , sản phẩm do form phải render lấy lại những giá trị đó
 			//lay danh sach users de hien thi dropdown
 			$customers = new Customer($db);
-			$customer = $customers->getCustomers();
+			$customer = $customers->readAll();
 
 			$products = new Products($db);
-			$product = $products->getProducts();
+			$product = $products->readAll();
 
 			$users = new Users($db);
 			$user = $users->getAll();

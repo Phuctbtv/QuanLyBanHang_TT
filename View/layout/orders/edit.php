@@ -67,7 +67,7 @@
                     <div class="mb-3">
                         <label class="">Chọn sản phẩm</label>
                         
-                        <select class="form-control" multiple="true" name="product_id">
+                        <select class="form-control" multiple="true" name="product_id[]">
                             <?php 
                             foreach ($products as $product) { 
                                     $selected = '';

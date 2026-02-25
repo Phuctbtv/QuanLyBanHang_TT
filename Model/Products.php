@@ -55,10 +55,9 @@ class Products {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     public function readAll() {
-        $query = "SELECT c.*, u.username as user_name
-                  FROM " . $this->table_name . " c
-                  LEFT JOIN users u ON c.users_id = u.id
-                  ORDER BY c.created_at DESC";
+        $query = "SELECT products.*
+                  FROM products
+                  WHERE status = 1";
         
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
