@@ -167,22 +167,23 @@ class Orders{
     }
 
     // hàm thống kê doanh thu bán được
-    public function statistical($month) {
+    public function statistical($month, $year) {
 	    $query = "SELECT MONTH(orders.order_date) as thang,
-	                     COUNT(order_details.products_id) as tongSP,
+	                     SUM(order_details.quantity) as tongSP,
 	                     COUNT(DISTINCT orders.id) as tongDH,
 	                     COUNT(DISTINCT orders.customers_id) as tongKH,
-	                     SUM(orders.total_money) as tongDT
+	                     SUM(order_details.quantity * order_details.price) as tongDT
 	              FROM orders 
 	              JOIN order_details ON orders.id = order_details.orders_id
 	              WHERE orders.status = 1 
 	                AND MONTH(orders.order_date) = :month 
-	                AND YEAR(orders.order_date) = YEAR(CURDATE())
+	                AND YEAR(orders.order_date) = :year
 	              GROUP BY MONTH(orders.order_date)
 	              ORDER BY MONTH(orders.order_date) ASC";
 
 	    $stmt = $this->conn->prepare($query);
 	    $stmt->bindParam(":month", $month);
+	    $stmt->bindParam(":year", $year);
 	    $stmt->execute();
 	    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}

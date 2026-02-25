@@ -615,34 +615,49 @@ public function update() {
         } else {
             $currentSelectedMonth = date('m');
         }
-        $order = $orders->statistical($currentSelectedMonth);
+        if (!empty($_POST['year'])) {
+            $currentSelectedYear = $_POST['year'];
+        } else {
+            $currentSelectedYear = date('Y');
+        }
+        $order = $orders->statistical($currentSelectedMonth, $currentSelectedYear);
         require_once 'View/layout/orders/showStatistical.php';
     }
 
     // hàm xuất excel theo bảng thống kê
     public function exportStatistical() {
-        if (!empty($_GET['month'])) {
-            $currentSelectedMonth = $_GET['month'];
-        }
         $database = new Database();
         $db = $database->connect();
 
         $orders = new Orders($db);
-        $order = $orders->statistical($currentSelectedMonth);
+        $order = $orders->statistical($_GET['month'], $_GET['year']);
         // khởi tạo 1 file excel
         $spreadsheet = new Spreadsheet();
         // lấy trang tính để bắt đầu ghi file
         $sheet = $spreadsheet->getActiveSheet();
         // tạo tiêu đề trang
         $sheet->setTitle('Thống kê doanh thu theo tháng');
+        $sheet->mergeCells('A1:E1');
+        $sheet->setCellValue('A1', 'BẢNG THỐNG KÊ DOANH THU');
+        //Căn giữa và viết đậm tiêu đề lớn
+        $styleArrayTitle = [
+            'font' => [
+                'bold' => true,
+                'size' => 14,
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+        ];
+        $sheet->getStyle('A1')->applyFromArray($styleArrayTitle);
         // tạo tiêu đề cột
-        $sheet->setCellValue('A1', 'Tháng');
-        $sheet->setCellValue('B1', 'Tổng sản phẩm bán được');
-        $sheet->setCellValue('C1', 'Tổng khách hàng mua');
-        $sheet->setCellValue('D1', 'Tổng đơn hàng bán được');
-        $sheet->setCellValue('E1', 'Tổng doanh thu');
+        $sheet->setCellValue('A2', 'Tháng');
+        $sheet->setCellValue('B2', 'Tổng sản phẩm bán được');
+        $sheet->setCellValue('C2', 'Tổng khách hàng mua');
+        $sheet->setCellValue('D2', 'Tổng đơn hàng bán được');
+        $sheet->setCellValue('E2', 'Tổng doanh thu');
         //đổ dữ liệu vào bắt đầu từ hàng 2
-         $row = 2;
+         $row = 3;
          foreach ($order as $item) {
              $sheet->setCellValue('A' . $row, $item['thang']);
              $sheet->setCellValue('B' . $row, $item['tongSP']);
@@ -651,7 +666,7 @@ public function update() {
              $sheet->setCellValue('E' .$row, $item['tongDT']);
              $row++;
          }
-        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+        $sheet->getStyle('A2:E2')->getFont()->setBold(true);
         $end = 'E' . ($row - 1);
         $spreadsheet->getActiveSheet()->getStyle('A1:' . $end)
         ->getBorders()

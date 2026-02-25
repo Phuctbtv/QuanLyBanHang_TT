@@ -15,6 +15,31 @@ require_once __DIR__ . '/../customer/header.php';
     .stats-table th, .stats-table td { padding: 15px; border-bottom: 1px solid #dee2e6; }
     .stats-table tbody tr:hover { background-color: #f1f1f1; }
     .money-column { color: #28a745; font-weight: bold; }
+    .filter-input-year {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    outline: none;
+    width: 100px; /* Độ rộng vừa đủ cho 4 chữ số */
+    font-weight: 500;
+    color: #495057;
+    transition: all 0.2s ease;
+    text-align: center;
+    }
+
+    .filter-input-year:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        background-color: #fff;
+    }
+    .filter-input-year::-webkit-outer-spin-button,
+    .filter-input-year::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .filter-input-year[type=number] {
+        -moz-appearance: textfield;
+    }
     select { padding: 7px; border-radius: 4px; border: 1px solid #ced4da; }
 </style>
 
@@ -42,9 +67,16 @@ require_once __DIR__ . '/../customer/header.php';
                 } 
                 ?>
             </select>
-
+            <label style="font-weight: bold; color: #495057;">Năm:</label>
+            <input type="number" 
+                   name="year" 
+                   class="filter-input-year" 
+                   value="<?php echo $currentSelectedYear ?>" 
+                   min="2020" 
+                   max="<?php echo date('Y') ?>" 
+                   placeholder="YYYY">
             <button type="submit" class="btn-submit">Xem kết quả</button>
-            <a href="index.php?controller=orders&action=exportStatistical&month=<?php echo $currentSelectedMonth ?>" 
+            <a href="index.php?controller=orders&action=exportStatistical&month=<?php echo $currentSelectedMonth ?>&year=<?php echo $currentSelectedYear ?>" 
                        class="btn-submit"> Xuất Excel
             </a>
         </form>
