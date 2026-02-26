@@ -168,18 +168,42 @@ class Orders{
 
     // hàm thống kê doanh thu bán được
     public function statistical($month, $year) {
-	    $query = "SELECT MONTH(orders.order_date) as thang,
-	                     SUM(order_details.quantity) as tongSP,
-	                     COUNT(DISTINCT orders.id) as tongDH,
-	                     COUNT(DISTINCT orders.customers_id) as tongKH,
-	                     SUM(order_details.quantity * order_details.price) as tongDT
-	              FROM orders 
-	              JOIN order_details ON orders.id = order_details.orders_id
-	              WHERE orders.status = 1 
-	                AND MONTH(orders.order_date) = :month 
-	                AND YEAR(orders.order_date) = :year
-	              GROUP BY MONTH(orders.order_date)
-	              ORDER BY MONTH(orders.order_date) ASC";
+	    // c1: $query = "SELECT MONTH(orders.order_date) as thang,
+	    //                  COUNT(DISTINCT order_details.products_id) as tongSP,
+	    //                  COUNT(DISTINCT orders.id) as tongDH,
+	    //                  COUNT(DISTINCT orders.customers_id) as tongKH,
+	    //                  SUM(distinct orders.total_money) as tongDT
+	    //           FROM orders 
+	    //           JOIN order_details ON orders.id = order_details.orders_id
+	    //           WHERE orders.status = 1 
+	    //             AND MONTH(orders.order_date) = :month 
+	    //             AND YEAR(orders.order_date) = :year
+	    //           GROUP BY MONTH(orders.order_date)
+	    //           ORDER BY MONTH(orders.order_date) ASC";
+
+	    $query = "SELECT :month as thang,
+			    (SELECT COUNT(*) 
+			     FROM (SELECT products_id FROM order_details od 
+			           JOIN orders o ON od.orders_id = o.id
+			           WHERE o.status = 1 AND month(order_date) = :month and year(order_date) = :year
+			           GROUP BY products_id) sp
+			    ) as tongSP,
+			    
+			    (SELECT COUNT(*) 
+			     FROM orders 
+			     WHERE status = 1 AND month(order_date) = :month and year(order_date) = :year
+			    ) as tongDH,
+			    
+			    (SELECT COUNT(*) 
+			     FROM (SELECT customers_id FROM orders 
+			           WHERE status = 1 AND month(order_date) = :month and year(order_date) = :year
+			           GROUP BY customers_id) kh
+			    ) as tongKH,
+			    
+			    (SELECT SUM(total_money) 
+			     FROM orders 
+			     WHERE status = 1 AND month(order_date) = :month and year(order_date) = :year
+			    ) as tongDT";
 
 	    $stmt = $this->conn->prepare($query);
 	    $stmt->bindParam(":month", $month);

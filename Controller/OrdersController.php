@@ -596,7 +596,7 @@ public function update() {
                 ->setAutoSize(true);
         }
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="Danhsachkhachhang.xlsx"');
+        header('Content-Disposition: attachment;filename="Danhsach_don_hang.xlsx"');
         //xóa mọi thứ trong bộ đệm file
         ob_end_clean();
         $writer = new Xlsx($spreadsheet);
