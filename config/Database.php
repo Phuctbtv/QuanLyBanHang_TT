@@ -1,9 +1,9 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "store";  // ĐÚNG TÊN DATABASE CỦA BẠN?
+    private $db_name = "store";  
     private $username = "root";
-    private $password = "";      // MẬT KHẨU CỦA XAMPP
+    private $password = "";      
     public $conn;
 
     public function connect() {

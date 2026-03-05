@@ -40,78 +40,100 @@ require_once __DIR__ . '/../customer/header.php';
     .filter-input-year[type=number] {
         -moz-appearance: textfield;
     }
-    .Thongke {
-        text-decoration: none;
-        color: black;
-    }
     select { padding: 7px; border-radius: 4px; border: 1px solid #ced4da; }
 </style>
 
 <div class="container stats-container">
     <div class="header-group">
-        <h2>Báo cáo thống kê doanh thu theo tháng trong năm hiện tại</h2>
-        <a href="index.php?controller=orders&action=index" class="btn-back">Quay lại trang quản trị</a>
-    </div>
-
-    <div style="margin-bottom: 25px;">
-        <form action="index.php?controller=orders&action=showStatistical" method="POST" class="filter-form">
-            <label style="font-weight: bold;">Chọn tháng báo cáo:</label>
-            <select name="month">
-                <?php 
-                for ($m = 1; $m <= 12; $m++) {
-                    $selected = "";
-                    if ($currentSelectedMonth == $m) {
-                        $selected = "selected";
-                    }
-                ?>
-                    <option value="<?php echo $m; ?>" <?php echo $selected; ?>>
-                        Tháng <?php echo $m; ?>
-                    </option>
-                <?php 
-                } 
-                ?>
-            </select>
-            <label style="font-weight: bold; color: #495057;">Năm:</label>
-            <input type="number" 
-                   name="year" 
-                   class="filter-input-year" 
-                   value="<?php echo $currentSelectedYear ?>" 
-                   min="2020" 
-                   max="<?php echo date('Y') ?>" 
-                   placeholder="YYYY">
-            <button type="submit" class="btn-submit">Xem kết quả</button>
-            <a href="index.php?controller=orders&action=exportStatistical&month=<?php echo $currentSelectedMonth ?>&year=<?php echo $currentSelectedYear ?>" 
+        <h2>Báo cáo thống kê doanh thu tất cả các ngày trong tháng được chọn</h2>
+        <a href="index.php?controller=orders&action=showStatistical" class="btn-back">Quay lại </a>
+         <a href="index.php?controller=orders&action=exportStatisticalDay&month=<?php echo $_GET['month'] ?>&year=<?php echo $_GET['year'] ?>" 
                        class="btn-submit"> Xuất Excel
-            </a>
-        </form>
+         </a>
     </div>
 
     <table class="stats-table">
         <thead>
             <tr>
                 <th>STT</th>
-                <th>Tháng</th>
-                <th>Tổng loại sản phẩm đã bán</th>
+                <th>Ngày</th>
+                <th>Tổng sản phẩm đã bán</th>
                 <th>Tổng khách hàng</th>
                 <th>Tổng đơn hàng</th>
                 <th>Tổng Doanh Thu</th>
             </tr>
         </thead>
         <tbody>
-            <?php if (!empty($order)): ?>
-                <?php $stt = 1; foreach ($order as $row): ?>
-                <tr>
-                    <td><?= $stt++ ?></td>
-                    <td> <a href="index.php?controller=orders&action=showStatisticalDay&month=<?php echo $currentSelectedMonth ?>&year=<?php echo $currentSelectedYear ?>" class="ThongKe"> <strong>Tháng <?= $row['thang'] ?></strong></td></a>
+             <?php
+            $daysInMonth = date('t', strtotime("$year-$month-01"));
+            $finalResult = [];
+            for ($ngay = 1; $ngay <= $daysInMonth; $ngay++) {
+                
+                $timThay = false;
+                $duLieuNgay = [
+                    'ngay' => $ngay,
+                    'tongSP' => 0,
+                    'tongDH' => 0,
+                    'tongKH' => 0,
+                    'tongDT' => 0
+                ];
+                
+                if (!empty($order)) {
+                    foreach ($order as $row) {
+                    if ($row['ngay'] == $ngay) {
+                        $duLieuNgay = $row;
+                        break; 
+                        }
+                    }
+                }
+                $finalResult[] = $duLieuNgay;
+            } 
+            ?>
+            <?php $stt = 1;
+            foreach ($finalResult as $row) { 
+            ?>
+            <tr>
+                <td><?= $stt++ ?></td>
+                    <td><strong>Ngày <?= $row['ngay'] ?></strong></td>
                     <td><?= number_format($row['tongSP']) ?></td>
                     <td><?= number_format($row['tongKH']) ?></td>
+                    <td><?= number_format($row['tongDH']) ?></td>
+                    <td class="money-column"><?= number_format($row['tongDT']) ?> VNĐ</td>
+
+            </tr>
+        <?php } ?>
+        </tbody>
+    </table>
+</div>
+<div class="container stats-container">
+    <div class="header-group">
+        <h2>Báo cáo KPI nhân viên tháng</h2>
+    </div>
+
+    <table class="stats-table">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Nhân viên</th>
+                <th>Tổng sản phẩm đã bán</th>
+                <th>Tổng đơn hàng</th>
+                <th>Tổng Doanh Thu</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!empty($order1)): ?>
+                <?php $stt = 1; foreach ($order1 as $row): ?>
+                <tr>
+                    <td><?= $stt++ ?></td>
+                    <td><strong><?= $row['ten'] ?></strong></td>
+                    <td><?= number_format($row['tongSP']) ?></td>
                     <td><?= number_format($row['tongDH']) ?></td>
                     <td class="money-column"><?= number_format($row['tongDT']) ?> VNĐ</td>
                 </tr>
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="6" style="padding: 30px; color: #666; text-align: center;">Không có dữ liệu cho tháng này.</td>
+                    <td colspan="5" style="padding: 30px; color: #666; text-align: center;">Không có dữ liệu cho tháng này.</td>
                 </tr>
             <?php endif; ?>
         </tbody>

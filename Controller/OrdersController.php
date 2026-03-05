@@ -603,6 +603,24 @@ public function update() {
         $writer->save('php://output');
         exit;
     }   
+    // hàm thống kê theo từng ngày trong tháng được chọn
+    public function showStatisticalDay() {
+        $database = new Database();
+        $db = $database->connect();
+
+        $orders = new Orders($db);
+        if (!empty($_GET['month'])) {
+            $month = $_GET['month'];
+        }
+        if (!empty($_GET['year'])) {
+            $year = $_GET['year'];
+        }
+        $order = $orders->statisticalDay($month, $year);
+
+        $orders1 = new Orders($db);
+        $order1 = $orders1->statisticalUser($month, $year);
+        require_once 'View/layout/orders/showStatisticalDay.php';
+    }
 
     // hàm hiển thị bảng thống kê
     public function showStatistical() {
@@ -623,23 +641,28 @@ public function update() {
         $order = $orders->statistical($currentSelectedMonth, $currentSelectedYear);
         require_once 'View/layout/orders/showStatistical.php';
     }
-
-    // hàm xuất excel theo bảng thống kê
-    public function exportStatistical() {
+    // hàm xuất excel theo 2 bảng thống kê doanh thu theo ngày của các tháng và kpi các nhân viên
+    public function exportStatisticalDay() {
         $database = new Database();
         $db = $database->connect();
 
         $orders = new Orders($db);
-        $order = $orders->statistical($_GET['month'], $_GET['year']);
+        $order = $orders->statisticalDay($_GET['month'], $_GET['year']);
+        $orders1 = new Orders($db);
+        $kpi = $orders1->statisticalUser($_GET['month'], $_GET['year']); 
+        
         // khởi tạo 1 file excel
         $spreadsheet = new Spreadsheet();
-        // lấy trang tính để bắt đầu ghi file
+        
+        // ========== SHEET 1: Thống kê theo ngày ==========
         $sheet = $spreadsheet->getActiveSheet();
-        // tạo tiêu đề trang
-        $sheet->setTitle('Thống kê doanh thu theo tháng');
+        $sheet->setTitle('Thống kê theo ngày');
+        
+        // tiêu đề lớn
         $sheet->mergeCells('A1:E1');
-        $sheet->setCellValue('A1', 'BẢNG THỐNG KÊ DOANH THU');
-        //Căn giữa và viết đậm tiêu đề lớn
+        $sheet->setCellValue('A1', 'BẢNG THỐNG KÊ DOANH THU THEO NGÀY');
+        
+        // Style tiêu đề
         $styleArrayTitle = [
             'font' => [
                 'bold' => true,
@@ -650,44 +673,175 @@ public function update() {
             ],
         ];
         $sheet->getStyle('A1')->applyFromArray($styleArrayTitle);
-        // tạo tiêu đề cột
-        $sheet->setCellValue('A2', 'Tháng');
-        $sheet->setCellValue('B2', 'Tổng sản phẩm bán được');
-        $sheet->setCellValue('C2', 'Tổng khách hàng mua');
-        $sheet->setCellValue('D2', 'Tổng đơn hàng bán được');
+        
+        // tiêu đề cột
+        $sheet->setCellValue('A2', 'Ngày');
+        $sheet->setCellValue('B2', 'Tổng sản phẩm');
+        $sheet->setCellValue('C2', 'Tổng khách hàng');
+        $sheet->setCellValue('D2', 'Tổng đơn hàng');
         $sheet->setCellValue('E2', 'Tổng doanh thu');
-        //đổ dữ liệu vào bắt đầu từ hàng 2
-         $row = 3;
-         foreach ($order as $item) {
-             $sheet->setCellValue('A' . $row, $item['thang']);
-             $sheet->setCellValue('B' . $row, $item['tongSP']);
-             $sheet->setCellValue('C' . $row, $item['tongKH']);
-             $sheet->setCellValue('D' .$row, $item['tongDH']);
-             $sheet->setCellValue('E' .$row, $item['tongDT']);
-             $row++;
-         }
-        $sheet->getStyle('A2:E2')->getFont()->setBold(true);
-        $end = 'E' . ($row - 1);
-        $spreadsheet->getActiveSheet()->getStyle('A1:' . $end)
-        ->getBorders()
-        ->getAllBorders()
-        ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A1:E' . $row)
-        ->getAlignment()
-        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER) // Căn giữa ngang
-        ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);   // Căn giữa dọc
-        foreach (range('A', 'E') as $columnID) {
-            $spreadsheet->getActiveSheet()
-                ->getColumnDimension($columnID)
-                ->setAutoSize(true);
+        
+        $daysInMonth = date('t', strtotime("$year-$month-01"));
+            $finalResult = [];
+            for ($ngay = 1; $ngay <= $daysInMonth; $ngay++) {
+                
+                $timThay = false;
+                $duLieuNgay = [
+                    'ngay' => $ngay,
+                    'tongSP' => 0,
+                    'tongDH' => 0,
+                    'tongKH' => 0,
+                    'tongDT' => 0
+                ];
+                
+                if (!empty($order)) {
+                    foreach ($order as $row) {
+                    if ($row['ngay'] == $ngay) {
+                        $duLieuNgay = $row;
+                        break; 
+                        }
+                    }
+                }
+                $finalResult[] = $duLieuNgay;
+            } 
+
+        // đổ dữ liệu
+        $row = 3;
+        foreach ($finalResult as $item) {
+            $sheet->setCellValue('A' . $row, $item['ngay']);
+            $sheet->setCellValue('B' . $row, $item['tongSP']);
+            $sheet->setCellValue('C' . $row, $item['tongKH']);
+            $sheet->setCellValue('D' . $row, $item['tongDH']);
+            $sheet->setCellValue('E' . $row, $item['tongDT']);
+            $row++;
         }
+        
+        // Format sheet 1
+        $sheet->getStyle('A2:E2')->getFont()->setBold(true);
+        $sheet->getStyle('A1:E' . ($row-1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A1:E' . ($row-1))->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+        
+        // ========== SHEET 2: KPI nhân viên ==========
+        $sheet2 = $spreadsheet->createSheet();
+        $sheet2->setTitle('KPI nhân viên');
+        
+        // Tiêu đề lớn sheet 2
+        $sheet2->mergeCells('A1:E1');
+        $sheet2->setCellValue('A1', 'BẢNG KPI NHÂN VIÊN THÁNG ' . $_GET['month'] . '/' . $_GET['year']);
+        $sheet2->getStyle('A1')->applyFromArray($styleArrayTitle);
+        
+        // Tiêu đề cột sheet 2
+        $sheet2->setCellValue('A2', 'STT');
+        $sheet2->setCellValue('B2', 'Tên nhân viên');
+        $sheet2->setCellValue('C2', 'Tổng sản phẩm đã bán');
+        $sheet2->setCellValue('D2', 'Tổng đơn hàng');
+        $sheet2->setCellValue('E2', 'Tổng doanh thu');
+        
+        // Đổ dữ liệu KPI
+        $row2 = 3;
+        $stt = 1;
+        foreach ($kpi as $item) {
+            $sheet2->setCellValue('A' . $row2, $stt++);
+            $sheet2->setCellValue('B' . $row2, $item['ten']);
+            $sheet2->setCellValue('C' . $row2, $item['tongSP']);
+            $sheet2->setCellValue('D' . $row2, $item['tongDH']);
+            $sheet2->setCellValue('E' . $row2, $item['tongDT']);
+            
+            $row2++;
+        }
+        
+        // Format sheet 2
+        $sheet2->getStyle('A2:E2')->getFont()->setBold(true);
+        $sheet2->getStyle('A1:E' . ($row2-1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet2->getStyle('A1:E' . ($row2-1))->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+        
+        // Auto size cột cho cả 2 sheet
+        foreach (range('A', 'E') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+            $sheet2->getColumnDimension($columnID)->setAutoSize(true);
+        }
+        
+        // Chuyển về sheet đầu tiên khi mở file
+        $spreadsheet->setActiveSheetIndex(0);
+        
+        // Xuất file
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="ThongKeDoanhThu.xlsx"');
-        //xóa mọi thứ trong bộ đệm file
+        header('Content-Disposition: attachment;filename="ThongKeDoanhThu_KPI_Thang' . $_GET['month'] . '_' . $_GET['year'] . '.xlsx"');
         ob_end_clean();
+        
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
+}
+
+        // hàm xuất excel theo bảng thống kê
+        public function exportStatistical() {
+            $database = new Database();
+            $db = $database->connect();
+
+            $orders = new Orders($db);
+            $order = $orders->statistical($_GET['month'], $_GET['year']);
+            // khởi tạo 1 file excel
+            $spreadsheet = new Spreadsheet();
+            // lấy trang tính để bắt đầu ghi file
+            $sheet = $spreadsheet->getActiveSheet();
+            // tạo tiêu đề trang
+            $sheet->setTitle('Thống kê doanh thu theo tháng');
+            $sheet->mergeCells('A1:E1');
+            $sheet->setCellValue('A1', 'BẢNG THỐNG KÊ DOANH THU');
+            //Căn giữa và viết đậm tiêu đề lớn
+            $styleArrayTitle = [
+                'font' => [
+                    'bold' => true,
+                    'size' => 14,
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                ],
+            ];
+            $sheet->getStyle('A1')->applyFromArray($styleArrayTitle);
+            // tạo tiêu đề cột
+            $sheet->setCellValue('A2', 'Tháng');
+            $sheet->setCellValue('B2', 'Tổng sản phẩm bán được');
+            $sheet->setCellValue('C2', 'Tổng khách hàng mua');
+            $sheet->setCellValue('D2', 'Tổng đơn hàng bán được');
+            $sheet->setCellValue('E2', 'Tổng doanh thu');
+            //đổ dữ liệu vào bắt đầu từ hàng 2
+             $row = 3;
+             foreach ($order as $item) {
+                 $sheet->setCellValue('A' . $row, $item['thang']);
+                 $sheet->setCellValue('B' . $row, $item['tongSP']);
+                 $sheet->setCellValue('C' . $row, $item['tongKH']);
+                 $sheet->setCellValue('D' .$row, $item['tongDH']);
+                 $sheet->setCellValue('E' .$row, $item['tongDT']);
+                 $row++;
+             }
+            $sheet->getStyle('A2:E2')->getFont()->setBold(true);
+            $end = 'E' . ($row - 1);
+            $spreadsheet->getActiveSheet()->getStyle('A1:' . $end)
+            ->getBorders()
+            ->getAllBorders()
+            ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()->getStyle('A1:E' . $row)
+            ->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER) // Căn giữa ngang
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);   // Căn giữa dọc
+            foreach (range('A', 'E') as $columnID) {
+                $spreadsheet->getActiveSheet()
+                    ->getColumnDimension($columnID)
+                    ->setAutoSize(true);
+            }
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="ThongKeDoanhThu.xlsx"');
+            //xóa mọi thứ trong bộ đệm file
+            ob_end_clean();
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+            exit;
     }
 
 	public function store(){

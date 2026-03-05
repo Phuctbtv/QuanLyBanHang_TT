@@ -211,5 +211,90 @@ class Orders{
 	    $stmt->execute();
 	    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
+	public function statisticalDay($month, $year) {
+		$query = "SELECT DAY(o2.order_date) as ngay,
+    
+			    (SELECT COUNT(DISTINCT od.products_id)
+			     FROM orders o1 
+			     JOIN order_details od ON o1.id = od.orders_id
+			     WHERE o1.status = 1 
+			       AND MONTH(o1.order_date) = :month 
+			       AND YEAR(o1.order_date) = :year
+			       AND DAY(o1.order_date) = DAY(o2.order_date)
+			    ) as tongSP,
+			    
+			    (SELECT COUNT(*) 
+			     FROM orders o1
+			     WHERE o1.status = 1 
+			       AND MONTH(o1.order_date) = :month 
+			       AND YEAR(o1.order_date) = :year
+			       AND DAY(o1.order_date) = DAY(o2.order_date)
+			    ) as tongDH,
+			    
+			    (SELECT COUNT(DISTINCT o1.customers_id)     
+			     FROM orders o1
+			     WHERE o1.status = 1 
+			       AND MONTH(o1.order_date) = :month 
+			       AND YEAR(o1.order_date) = :year
+			       AND DAY(o1.order_date) = DAY(o2.order_date)
+			    ) as tongKH,
+			    
+			    (SELECT SUM(o1.total_money) 
+			     FROM orders o1
+			     WHERE o1.status = 1 
+			       AND MONTH(o1.order_date) = :month 
+			       AND YEAR(o1.order_date) = :year
+			       AND DAY(o1.order_date) = DAY(o2.order_date)
+			    ) as tongDT
+			    
+			FROM orders o2
+			WHERE MONTH(o2.order_date) = :month 
+			  AND YEAR(o2.order_date) = :year
+			GROUP BY DAY(o2.order_date)
+			ORDER BY ngay";
+		$stmt = $this->conn->prepare($query);
+		$stmt->bindParam(":month", $month);
+	    $stmt->bindParam(":year", $year);
+	    $stmt->execute();
+	    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	}
+	public function statisticalUser($month, $year) {
+		$query = "SELECT u.username as ten,
+    
+			    (SELECT COUNT(DISTINCT od.products_id)
+			     FROM orders o1 
+			     JOIN order_details od ON o1.id = od.orders_id
+			     WHERE o1.status = 1 
+			       AND MONTH(o1.order_date) = :month 
+			       AND YEAR(o1.order_date) = :year
+			       AND o1.users_id = u.id
+			    ) as tongSP,
+			    
+			    (SELECT COUNT(*) 
+			     FROM orders o1
+			     WHERE o1.status = 1 
+			       AND MONTH(o1.order_date) = :month 
+			       AND YEAR(o1.order_date) = :year
+			       AND o1.users_id = u.id
+			    ) as tongDH,
+			    
+			    (SELECT SUM(o1.total_money) 
+			     FROM orders o1
+			     WHERE o1.status = 1 
+			       AND MONTH(o1.order_date) = :month
+			       AND YEAR(o1.order_date) = :year
+			       AND o1.users_id = u.id
+			    ) as tongDT
+			    
+			FROM orders o2 join users u on o2.users_id = u.id
+			WHERE MONTH(o2.order_date) = :month 
+			  AND YEAR(o2.order_date) = :year
+			  group by ten";
+		$stmt = $this->conn->prepare($query);
+		$stmt->bindParam(":month", $month);
+	    $stmt->bindParam(":year", $year);
+	    $stmt->execute();
+	    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	}
 }
 ?>
