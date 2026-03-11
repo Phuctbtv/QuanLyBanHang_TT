@@ -93,6 +93,25 @@ public function update() {
     }
     return false;
 }
+ // Update trạng thái cho sự kiện click
+public function UpdateStatus($status) {
+    // Kiểm tra id có tồn tại không
+    if (empty($this->id)) {
+        return false;
+    }
+    $query = "UPDATE users
+              SET status = :status,
+              updated_at = :updated_at
+              WHERE id = :id";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(":status", $status);
+    $stmt->bindParam(":updated_at", date('Y-m-d H:i:s',time()));
+    $stmt->bindParam(":id", $this->id);
+    if($stmt->execute()) {
+            return true;
+        }
+            return false;
+    }
  //Update cập nhật mật khẩu của user
 public function updatePassword(){
     if (empty($this->id)) {
@@ -107,47 +126,16 @@ public function updatePassword(){
         $stmt->bindParam(":password", md5($this->password));
         $stmt->bindParam(":id", $this->id);
         if($stmt->execute()) {
-        return true;
+            return true;
+            }
+            return false;
         }
-        return false;
-    }
 }
-
-    // // DELETE - Xóa user (cẩn thận vì có khóa ngoại)
-    // public function delete($id) {
-    //     // Kiểm tra xem user có đang được sử dụng không
-    //     $check_query = "SELECT COUNT(*) as count FROM customers WHERE users_id = ?";
-    //     $check_stmt = $this->conn->prepare($check_query);
-    //     $check_stmt->bindParam(1, $id);
-    //     $check_stmt->execute();
-    //     $result = $check_stmt->fetch(PDO::FETCH_ASSOC);
-        
-    //     if ($result['count'] > 0) {
-    //         // Không cho xóa nếu user đang được sử dụng
-    //         return false;
-    //     }
-        
-    //     $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
-    //     $stmt = $this->conn->prepare($query);
-    //     $stmt->bindParam(1, $id);
-        
-    //     if($stmt->execute()) {
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
-    // // VERIFY - Xác thực login
-    // public function verifyPassword($password) {
-    //     return password_verify($password, $this->password);
-    // }
-
     
-
     // Lấy users đang hoạt động
     public function getActiveUsers($limit = 1,$offset = 0) {
         $query = "SELECT * FROM " . $this->table_name . " 
-                  WHERE status = 1 ORDER BY username LIMIT :limit OFFSET :offset";
+                  WHERE status = 1  or status = 2 ORDER BY id LIMIT :limit OFFSET :offset";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":limit", $limit, PDO::PARAM_INT);
         $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
@@ -158,7 +146,7 @@ public function updatePassword(){
     public function countAll(){
         $query = "SELECT COUNT(*) as total
                   FROM users
-                  WHERE status = 1";
+                  WHERE status = 1 or status = 2";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

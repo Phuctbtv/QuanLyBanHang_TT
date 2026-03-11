@@ -288,8 +288,8 @@ class UsersController {
         $db = $database->connect();
         
         $user = new Users($db);
-        
-        if ($user->updateStatus($id, 0)) { 
+        $user->id = $id;
+        if ($user->updateStatus($status = 0)) { 
             header('Location: index.php?controller=Users&action=index');
             exit();
         } else {
@@ -629,5 +629,33 @@ class UsersController {
         
         require_once 'View/layout/users/indexUsers.php';
     }
+    // cập nhật trạng thái theo sự kiện click
+    public function updateStatusUser() {
+    // Lấy ID và Status từ URL qua phương thức GET
+    if (!empty($_GET['id'])) {
+        $id = $_GET['id'];
+    }
+    if (!empty($_GET['status'])) {
+        $status = $_GET['status'];
+    }
+    if (!empty($_GET['page'])) {
+        $page = $_GET['page'];
+    } else {
+        $page = 1;
+    }
+    if (!empty($id) && !empty($status)) {
+        $database = new Database();
+        $db = $database->connect();
+        $userModel = new Users($db);
+        $userModel->id = $id;
+        
+        if ($userModel->UpdateStatus($status)) {
+            header("Location: index.php?controller=users&action=index&page=" . $page);
+            exit();
+        } else {
+            echo "Lỗi khi cập nhật trạng thái!";
+        }
+    }
+}
 }
 ?>

@@ -168,19 +168,6 @@ class Orders{
 
     // hàm thống kê doanh thu bán được
     public function statistical($month, $year) {
-	    // c1: $query = "SELECT MONTH(orders.order_date) as thang,
-	    //                  COUNT(DISTINCT order_details.products_id) as tongSP,
-	    //                  COUNT(DISTINCT orders.id) as tongDH,
-	    //                  COUNT(DISTINCT orders.customers_id) as tongKH,
-	    //                  SUM(distinct orders.total_money) as tongDT
-	    //           FROM orders 
-	    //           JOIN order_details ON orders.id = order_details.orders_id
-	    //           WHERE orders.status = 1 
-	    //             AND MONTH(orders.order_date) = :month 
-	    //             AND YEAR(orders.order_date) = :year
-	    //           GROUP BY MONTH(orders.order_date)
-	    //           ORDER BY MONTH(orders.order_date) ASC";
-
 	    $query = "SELECT :month as thang,
 			    (SELECT COUNT(*) 
 			     FROM (SELECT products_id FROM order_details od 
@@ -212,46 +199,16 @@ class Orders{
 	    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 	public function statisticalDay($month, $year) {
-		$query = "SELECT DAY(o2.order_date) as ngay,
-    
-			    (SELECT COUNT(DISTINCT od.products_id)
-			     FROM orders o1 
-			     JOIN order_details od ON o1.id = od.orders_id
-			     WHERE o1.status = 1 
-			       AND MONTH(o1.order_date) = :month 
-			       AND YEAR(o1.order_date) = :year
-			       AND DAY(o1.order_date) = DAY(o2.order_date)
-			    ) as tongSP,
+		$query = "SELECT o2.order_date ,
+				  count(distinct od.products_id) as sumProduct,
+				  count(distinct o2.customers_id) as sumCustomer,
+				  count(distinct o2.id) as sumOrder,
+				  o2.id, total_money	  
 			    
-			    (SELECT COUNT(*) 
-			     FROM orders o1
-			     WHERE o1.status = 1 
-			       AND MONTH(o1.order_date) = :month 
-			       AND YEAR(o1.order_date) = :year
-			       AND DAY(o1.order_date) = DAY(o2.order_date)
-			    ) as tongDH,
-			    
-			    (SELECT COUNT(DISTINCT o1.customers_id)     
-			     FROM orders o1
-			     WHERE o1.status = 1 
-			       AND MONTH(o1.order_date) = :month 
-			       AND YEAR(o1.order_date) = :year
-			       AND DAY(o1.order_date) = DAY(o2.order_date)
-			    ) as tongKH,
-			    
-			    (SELECT SUM(o1.total_money) 
-			     FROM orders o1
-			     WHERE o1.status = 1 
-			       AND MONTH(o1.order_date) = :month 
-			       AND YEAR(o1.order_date) = :year
-			       AND DAY(o1.order_date) = DAY(o2.order_date)
-			    ) as tongDT
-			    
-			FROM orders o2
-			WHERE MONTH(o2.order_date) = :month 
+			FROM orders o2 join order_details od on o2.id = od.orders_id
+			WHERE MONTH(o2.order_date) = :month
 			  AND YEAR(o2.order_date) = :year
-			GROUP BY DAY(o2.order_date)
-			ORDER BY ngay";
+			GROUP BY o2.id";
 		$stmt = $this->conn->prepare($query);
 		$stmt->bindParam(":month", $month);
 	    $stmt->bindParam(":year", $year);

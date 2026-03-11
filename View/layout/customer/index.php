@@ -76,9 +76,9 @@
                                         <div class="btn-group">
                                             <a href="index.php?controller=customer&action=edit&id=<?= $item['id'] ?>" 
                                                class="btn btn-sm btn-outline-warning">Sửa</a>
-                                            <a href="index.php?controller=customer&action=destroy&id=<?= $item['id'] ?>" 
+                                            <a id="a-Update" href="index.php?controller=customer&action=destroy&id=<?= $item['id'] ?>"  
                                                 class="btn btn-sm btn-outline-danger" 
-                                                onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?')">
+                                                onclick=" return deleteConfirm()">
                                                     <i class="bi bi-trash me-1"></i> Xóa
                                             </a>
                                         </div>
@@ -107,5 +107,4 @@
         </div>
     </div>
 </div>
-
 <?php require_once 'footer.php'; ?>

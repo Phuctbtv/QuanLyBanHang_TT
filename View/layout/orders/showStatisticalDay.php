@@ -64,41 +64,16 @@ require_once __DIR__ . '/../customer/header.php';
             </tr>
         </thead>
         <tbody>
-             <?php
-            $daysInMonth = date('t', strtotime("$year-$month-01"));
-            $finalResult = [];
-            for ($ngay = 1; $ngay <= $daysInMonth; $ngay++) {
-                
-                $timThay = false;
-                $duLieuNgay = [
-                    'ngay' => $ngay,
-                    'tongSP' => 0,
-                    'tongDH' => 0,
-                    'tongKH' => 0,
-                    'tongDT' => 0
-                ];
-                
-                if (!empty($order)) {
-                    foreach ($order as $row) {
-                    if ($row['ngay'] == $ngay) {
-                        $duLieuNgay = $row;
-                        break; 
-                        }
-                    }
-                }
-                $finalResult[] = $duLieuNgay;
-            } 
-            ?>
             <?php $stt = 1;
             foreach ($finalResult as $row) { 
             ?>
             <tr>
                 <td><?= $stt++ ?></td>
-                    <td><strong>Ngày <?= $row['ngay'] ?></strong></td>
-                    <td><?= number_format($row['tongSP']) ?></td>
-                    <td><?= number_format($row['tongKH']) ?></td>
-                    <td><?= number_format($row['tongDH']) ?></td>
-                    <td class="money-column"><?= number_format($row['tongDT']) ?> VNĐ</td>
+                    <td><strong>Ngày <?= $row['day'] ?></strong></td>
+                    <td><?= number_format($row['sumProduct']) ?></td>
+                    <td><?= number_format($row['sumCustomer']) ?></td>
+                    <td><?= number_format($row['sumOrder']) ?></td>
+                    <td class="money-column"><?= number_format($row['sumDT']) ?> VNĐ</td>
 
             </tr>
         <?php } ?>

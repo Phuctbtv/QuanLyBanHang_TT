@@ -616,9 +616,43 @@ public function update() {
             $year = $_GET['year'];
         }
         $order = $orders->statisticalDay($month, $year);
-
-        $orders1 = new Orders($db);
-        $order1 = $orders1->statisticalUser($month, $year);
+        $result = [];
+        // Xử lý dữ liệu từ database
+        foreach ($order as $row) {
+            $time = date('Y-m-d', strtotime($row['order_date']));
+            $day = (int) date('d', strtotime($time));
+            if (empty($result[$time])) {
+                $result[$time] = [
+                    'day' => $day,
+                    'sumProduct' => $row['sumProduct'],
+                    'sumCustomer' => $row['sumCustomer'],
+                    'sumOrder' => $row['sumOrder'],
+                    'sumDT' => $row['total_money']
+                ];
+            } else {
+                $result[$time]['sumProduct'] += $row['sumProduct'];
+                $result[$time]['sumCustomer'] += $row['sumCustomer'];
+                $result[$time]['sumOrder'] += $row['sumOrder'];
+                $result[$time]['sumDT'] += $row['total_money'];
+            }
+        }
+        $daysInMonth = date('t', strtotime("$year-$month-01"));
+        $finalResult = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+             $dayKey = date("Y-m-d", strtotime("$year-$month-$day"));
+            if (isset($result[$dayKey])) {
+                 $finalResult[] = $result[$dayKey];
+            } else {
+                $finalResult[] = [
+                    'day' => $day,
+                    'sumProduct' => 0,
+                    'sumCustomer' => 0,
+                    'sumOrder' => 0,
+                    'sumDT' => 0
+                ];
+            }
+        }
+        $order1 = $orders->statisticalUser($month, $year);
         require_once 'View/layout/orders/showStatisticalDay.php';
     }
 
@@ -628,6 +662,7 @@ public function update() {
         $db = $database->connect();
         
         $orders = new Orders($db);
+        $years = [2021, 2022, 2023, 2024, 2025, 2026];
         if (!empty($_POST['month'])) {
             $currentSelectedMonth = $_POST['month'];
         } else {
@@ -647,9 +682,14 @@ public function update() {
         $db = $database->connect();
 
         $orders = new Orders($db);
-        $order = $orders->statisticalDay($_GET['month'], $_GET['year']);
-        $orders1 = new Orders($db);
-        $kpi = $orders1->statisticalUser($_GET['month'], $_GET['year']); 
+        if (!empty($_GET['month'])) {
+            $month = $_GET['month'];
+        }
+        if (!empty($_GET['year'])) {
+            $year = $_GET['year'];
+        }
+        $order = $orders->statisticalDay($month, $year);
+        $kpi = $orders->statisticalUser($month, $year); 
         
         // khởi tạo 1 file excel
         $spreadsheet = new Spreadsheet();
@@ -660,7 +700,7 @@ public function update() {
         
         // tiêu đề lớn
         $sheet->mergeCells('A1:E1');
-        $sheet->setCellValue('A1', 'BẢNG THỐNG KÊ DOANH THU THEO NGÀY');
+        $sheet->setCellValue('A1', 'BẢNG THỐNG KÊ DOANH THU THEO NGÀY CỦA THÁNG' . ' ' . $_GET['month'] .' '. 'NĂM' .' '. $_GET['year']);
         
         // Style tiêu đề
         $styleArrayTitle = [
@@ -681,38 +721,51 @@ public function update() {
         $sheet->setCellValue('D2', 'Tổng đơn hàng');
         $sheet->setCellValue('E2', 'Tổng doanh thu');
         
-        $daysInMonth = date('t', strtotime("$year-$month-01"));
-            $finalResult = [];
-            for ($ngay = 1; $ngay <= $daysInMonth; $ngay++) {
-                
-                $timThay = false;
-                $duLieuNgay = [
-                    'ngay' => $ngay,
-                    'tongSP' => 0,
-                    'tongDH' => 0,
-                    'tongKH' => 0,
-                    'tongDT' => 0
-                ];
-                
-                if (!empty($order)) {
-                    foreach ($order as $row) {
-                    if ($row['ngay'] == $ngay) {
-                        $duLieuNgay = $row;
-                        break; 
-                        }
-                    }
-                }
-                $finalResult[] = $duLieuNgay;
-            } 
 
+        $result = [];
+        // Xử lý dữ liệu từ database
+        foreach ($order as $row) {
+            $time = date('Y-m-d', strtotime($row['order_date']));
+            $day = (int) date('d', strtotime($time));
+            if (empty($result[$time])) {
+                $result[$time] = [
+                    'day' => $day,
+                    'sumProduct' => $row['sumProduct'],
+                    'sumCustomer' => $row['sumCustomer'],
+                    'sumOrder' => $row['sumOrder'],
+                    'sumDT' => $row['total_money']
+                ];
+            } else {
+                $result[$time]['sumProduct'] += $row['sumProduct'];
+                $result[$time]['sumCustomer'] += $row['sumCustomer'];
+                $result[$time]['sumOrder'] += $row['sumOrder'];
+                $result[$time]['sumDT'] += $row['total_money'];
+            }
+        }
+        $daysInMonth = date('t', strtotime("$year-$month-01"));
+        $finalResult = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+             $dayKey = date("Y-m-d", strtotime("$year-$month-$day"));
+            if (isset($result[$dayKey])) {
+                 $finalResult[] = $result[$dayKey];
+            } else {
+                $finalResult[] = [
+                    'day' => $day,
+                    'sumProduct' => 0,
+                    'sumCustomer' => 0,
+                    'sumOrder' => 0,
+                    'sumDT' => 0
+                ];
+            }
+        }
         // đổ dữ liệu
         $row = 3;
         foreach ($finalResult as $item) {
-            $sheet->setCellValue('A' . $row, $item['ngay']);
-            $sheet->setCellValue('B' . $row, $item['tongSP']);
-            $sheet->setCellValue('C' . $row, $item['tongKH']);
-            $sheet->setCellValue('D' . $row, $item['tongDH']);
-            $sheet->setCellValue('E' . $row, $item['tongDT']);
+            $sheet->setCellValue('A' . $row, $item['day']);
+            $sheet->setCellValue('B' . $row, $item['sumProduct']);
+            $sheet->setCellValue('C' . $row, $item['sumCustomer']);
+            $sheet->setCellValue('D' . $row, $item['sumOrder']);
+            $sheet->setCellValue('E' . $row, $item['sumDT']);
             $row++;
         }
         

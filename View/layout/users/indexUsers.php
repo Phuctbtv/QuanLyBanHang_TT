@@ -60,22 +60,11 @@ require_once __DIR__ . '/../customer/header.php';
                                         <strong><?php echo $user['username']; ?></strong>
                                     </td>
                                     <td><img src="View/layout/upload/<?php echo $user['photo']; ?>" alt="ảnh" width="50"></td>
-                                    <td>
-                                        <span class="badge rounded-pill bg-<?php if ($user['status'] == 1){
-                                            echo "success";
-                                        }else{
-                                            echo "danger";
-                                        } ?>"> 
-                                        <!-- success
-                                        danger -->
-                                            <?php if ($user['status'] == 1){
-                                                echo "Active";
-                                            }else{
-                                                echo "Inactive";
-                                            }
-                                            ?>
-                                        </span>
-                                    </td>
+                                    <td style="cursor: pointer;" onclick="window.location.href='index.php?controller=Users&action=updateStatusUser&id=<?php echo $user['id']; ?>&status=<?php if ($user['status'] == 1) { echo $user['status'] = 2;} else { echo $user['status'] = 1;} ?>&page=<?php if (!empty($_GET['page'])) { echo $_GET['page']; } ?>'">
+                                    <span class="badge rounded-pill bg-<?php echo $user['status'] == 1 ? 'success' : 'danger'; ?>">
+                                        <?php echo $user['status'] == 1 ? 'Active' : 'Inactive'; ?>
+                                    </span>
+                                     </td>
                                     <td>
                                         <?php echo date('d/m/Y H:i:s',strtotime($user['created_at'])); ?>
                                     </td>

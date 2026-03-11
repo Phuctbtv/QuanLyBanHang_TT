@@ -56,7 +56,7 @@ require_once __DIR__ . '/../customer/header.php';
     <div style="margin-bottom: 25px;">
         <form action="index.php?controller=orders&action=showStatistical" method="POST" class="filter-form">
             <label style="font-weight: bold;">Chọn tháng báo cáo:</label>
-            <select name="month">
+            <select name="month" id="slt-month" onchange="SelectChange()">
                 <?php 
                 for ($m = 1; $m <= 12; $m++) {
                     $selected = "";
@@ -72,14 +72,22 @@ require_once __DIR__ . '/../customer/header.php';
                 ?>
             </select>
             <label style="font-weight: bold; color: #495057;">Năm:</label>
-            <input type="number" 
-                   name="year" 
-                   class="filter-input-year" 
-                   value="<?php echo $currentSelectedYear ?>" 
-                   min="2020" 
-                   max="<?php echo date('Y') ?>" 
-                   placeholder="YYYY">
-            <button type="submit" class="btn-submit">Xem kết quả</button>
+            <select name="year" id="slt-year" onchange="SelectChange()">
+                <?php
+                foreach ($years as $y) {
+                    $selected = "";
+                    if ($currentSelectedYear == $y) {
+                        $selected = "selected";
+                    }
+                ?>
+                <option value="<?php echo $y; ?>" <?php echo $selected; ?>>
+                     <?php echo $y; ?>
+                </option>
+                <?php 
+                }
+                ?>
+            </select>
+            <button type="submit" class="btn-submit" id="btn-send">Xem kết quả</button>
             <a href="index.php?controller=orders&action=exportStatistical&month=<?php echo $currentSelectedMonth ?>&year=<?php echo $currentSelectedYear ?>" 
                        class="btn-submit"> Xuất Excel
             </a>
@@ -117,6 +125,7 @@ require_once __DIR__ . '/../customer/header.php';
         </tbody>
     </table>
 </div>
+
 
 <?php 
 require_once __DIR__ . '/../customer/footer.php'; 
